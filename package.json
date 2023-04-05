@@ -1,0 +1,39 @@
+{
+  "name": "my-mountains",
+  "version": "0.0.1",
+  "description": "Sample app to track my mountains trips.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node -r dotenv/config src/index.js",
+    "dev": "nodemon --config nodemon.json --inspect -r dotenv/config src/index.js",
+    "initStack": "cd ./my-mountains-stack && docker compose up -d",
+    "applyMigrations": "node -r dotenv/config ./src/scripts/applyMigrations.js"
+  },
+  "keywords": [
+    "fastify",
+    "adminjs"
+  ],
+  "author": "filippomeniswork@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "@adminjs/fastify": "^3.0.1",
+    "@adminjs/sql": "^1.0.0",
+    "adminjs": "^6.8.7",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.15.0",
+    "pg": "^8.10.0",
+    "postgrator": "^7.1.1",
+    "tslib": "^2.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.37.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.7"
+  }
+}
