@@ -19,9 +19,12 @@
   "dependencies": {
     "@adminjs/fastify": "^3.0.1",
     "@adminjs/sql": "^1.0.0",
+    "@fastify/env": "^4.2.0",
     "adminjs": "^6.8.7",
+    "close-with-grace": "^1.1.0",
     "dotenv": "^16.0.3",
     "fastify": "^4.15.0",
+    "fluent-json-schema": "^4.1.0",
     "pg": "^8.10.0",
     "postgrator": "^7.1.1",
     "tslib": "^2.5.0"

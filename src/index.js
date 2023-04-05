@@ -2,17 +2,37 @@ import AdminJSFastify from '@adminjs/fastify'
 import AdminJS from 'adminjs'
 import { Adapter, Resource, Database } from '@adminjs/sql'
 import Fastify from 'fastify'
+import env from '@fastify/env'
+import closeWithGrace from 'close-with-grace'
+
+import { sEnv } from './utils/schema.utils.js'
 
 /**
  * TODO
+ * - authentication
  * - better define trips table columns (photos, gpx files, ecc)
  * - better readme (env variabiles docs, ecc)
- * - authentication
+ * - closeWithGrace
+ * - prisma
+ * - typescript
  */
 
 const start = async () => {
-  //##TODO @fastify/env
-  const app = Fastify()
+  const fastify = Fastify({
+    logger: {
+      level: process.env.LOG_LEVEL,
+    },
+    trustProxy: true,
+    ajv: {
+      customOptions: {
+        allErrors: true,
+      },
+    },
+  })
+
+  await fastify.register(env, {
+    schema: sEnv(),
+  })
 
   AdminJS.registerAdapter({
     Database,
@@ -20,11 +40,11 @@ const start = async () => {
   })
 
   const db = await new Adapter('postgresql', {
-    host: process.env.PG_HOST,
-    port: process.env.PG_PORT,
-    database: process.env.PG_DB,
-    user: process.env.PG_USER,
-    password: process.env.PG_PW,
+    host: fastify.config.PG_HOST,
+    port: fastify.config.PG_PORT,
+    database: fastify.config.PG_DB,
+    user: fastify.config.PG_USER,
+    password: fastify.config.PG_PW,
   }).init()
 
   const admin = new AdminJS({
@@ -36,6 +56,7 @@ const start = async () => {
     },
     resources: [
       {
+        //##TODO exclude craetedAt and updatedAt fields from creation
         resource: db.table('trip'),
         options: {
           properties: {
@@ -58,18 +79,32 @@ const start = async () => {
     ],
   })
 
-  await AdminJSFastify.buildRouter(admin, app)
+  await AdminJSFastify.buildRouter(admin, fastify)
+  await fastify.ready()
 
-  app.listen(
-    { port: process.env.SERVER_PORT, address: process.env.SERVER_ADDRESS },
+  closeWithGrace({ delay: 500 }, async ({ signal, err }) => {
+    const { log } = fastify
+    if (err) {
+      log.error(err)
+    }
+    log.debug(`'${signal}' signal receiced. Gracefully closing fastify server`)
+    await fastify.close()
+  })
+
+  fastify.listen(
+    {
+      port: fastify.config.SERVER_PORT,
+      address: fastify.config.SERVER_ADDRESS,
+    },
     (err, addr) => {
       if (err) {
-        console.error(err)
-      } else {
-        console.log(
-          `AdminJS started on http://localhost:${process.env.SERVER_PORT}${admin.options.rootPath}`
-        )
+        fastify.log.fatal(err)
+        process.exit(1)
       }
+
+      fastify.log.debug(
+        `AdminJS started on http://localhost:${fastify.config.SERVER_PORT}${admin.options.rootPath}`
+      )
     }
   )
 }
